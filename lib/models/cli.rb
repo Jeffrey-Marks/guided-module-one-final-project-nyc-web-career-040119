@@ -24,6 +24,7 @@ class CLI
         end
       end
 
+      puts "Welcome back, #{self.farmer.name}!"
       self.main_screen
     else
       self.create_user(name)
@@ -36,6 +37,8 @@ class CLI
     ans = self.input
     if ans == "y"
       self.farmer = Farmer.create(name: name, crops_harvested: 0)
+      puts "Welcome to Stardew Valley, #{self.farmer.name}!"
+      ###Change name of farm
       self.main_screen
     elsif ans == "n"
       self.welcome
@@ -50,11 +53,12 @@ class CLI
   ##### MAIN SCREEN
 
   def main_screen
-    puts "Hello #{self.farmer.name}! Enter the option number you want to perform."
-      puts "1.Check Crops"
-      puts "2.Plant New Crops"
-      puts "3.Sleep"
-      puts "4.Log Out"
+    puts "Enter the option number you want to perform."
+      puts "1. Check Crops"
+      puts "2. Plant New Crops"
+      puts "3. Sleep"
+      puts "4. Check Stats"
+      puts "4. Log Out"
     input = self.input
     #list main_screen
     case input
@@ -102,7 +106,25 @@ class CLI
     # end
 
     if ans == 1
-        #harvest crops
+      if self.farmer.farmer_plants.reload.empty?
+        puts "No crops ready to harvest."
+      end
+
+      was_a_crop_harvested = false
+
+      self.farmer.farmer_plants.reload.each do |fp|
+        pct = fp.reload.days_since_planted.to_f / fp.plant.days_to_grow.to_f
+        if fp.reload.alive && (pct >= 1.0)
+          puts "You harvested your #{fp.plant.name} from Plot #{fp.plot_number}!"
+          FarmerPlant.delete(fp.id)
+          self.farmer.update(crops_harvested: self.farmer.crops_harvested + 1)
+          was_a_crop_harvested = true
+          ### ADD MONEY
+        elsif (fp == self.farmer.farmer_plants.order(:plot_number).last) && !was_a_crop_harvested
+          puts "No crops ready to harvest."
+        end
+      end
+      self.check_crops_screen
     elsif ans == 2
       self.main_screen
     end
@@ -200,7 +222,10 @@ class CLI
 
     FarmerPlant.all.each do |fp|
       pct = fp.reload.days_since_planted.to_f / fp.plant.days_to_grow.to_f
-      if (fp.reload.alive == true) && (pct > 3.0)
+
+      if fp.reload.alive && (pct >= 1.0) && (pct < 3.0)
+        puts "Your #{fp.plant.name} in Plot #{fp.plot_number} is ready to harvest!"
+      elsif fp.reload.alive && (pct > 3.0)
         puts "#{fp.farmer.name}'s #{fp.plant.name} died!"
         fp.update(alive: false)
         # fp.alive = false ### ONLY AFFECTS CLASS INSTANCE, DOESN'T PUSH CHANGES TO DB
@@ -257,6 +282,10 @@ class CLI
     input
   end
 
+# helper method for pct
+  def pct(var)
+    var.reload.days_since_planted.to_f / var.plant.days_to_grow.to_f
+  end
 
   def quit
     puts "Goodbye and thanks for visiting Stardew Valley!"

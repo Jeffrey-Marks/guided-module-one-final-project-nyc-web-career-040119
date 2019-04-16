@@ -1,4 +1,7 @@
-# Module One Project 
+# Stardew Valley Command Line Game
+
+
+<!-- # Module One Project
 
 Congratulations, you're at the end of module one! You've worked crazy hard to get here and have learned a ton.
 
@@ -214,4 +217,4 @@ Now, add this method to the run method, and pass it the lines we got in the ```f
 
 
 
-<p class='util--hide'>View <a href='https://learn.co/lessons/guided-module-one-final-project'>Guided Module One Final Project</a> on Learn.co and start learning to code for free.</p>
+<p class='util--hide'>View <a href='https://learn.co/lessons/guided-module-one-final-project'>Guided Module One Final Project</a> on Learn.co and start learning to code for free.</p> -->
