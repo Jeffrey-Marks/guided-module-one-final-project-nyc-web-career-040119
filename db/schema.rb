@@ -21,7 +21,8 @@ ActiveRecord::Schema.define(version: 20190415192600) do
   end
 
   create_table "farmers", force: :cascade do |t|
-    t.string "name"
+    t.string  "name"
+    t.integer "crops_harvested"
   end
 
   create_table "plants", force: :cascade do |t|
