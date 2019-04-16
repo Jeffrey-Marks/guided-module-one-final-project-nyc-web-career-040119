@@ -347,8 +347,8 @@ class CLI
   end
 
 # helper method for pct
-  def pct(var)
-    var.reload.days_since_planted.to_f / var.plant.days_to_grow.to_f
+  def pct(farmer_plant)
+    farmer_plant.reload.days_since_planted.to_f / farmer_plant.plant.days_to_grow.to_f
   end
 
   def quit

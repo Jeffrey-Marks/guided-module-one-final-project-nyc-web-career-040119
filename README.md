@@ -16,6 +16,10 @@
 
 * '1. Harvest Crops' return by plot
 * Music
+* (?) plant crops from Check Crops screen
+* (?) How well you slept affects items in store
+* High score based on :crops_harvested
+* (?) Lose money everyday?
 
 
 # Notes
