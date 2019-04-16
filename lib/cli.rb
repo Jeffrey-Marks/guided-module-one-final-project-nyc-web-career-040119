@@ -74,23 +74,47 @@ class CLI
     end
 
     puts "Which of these crops would you like to plant? [1,2,3]"
-    crop_choice = self.input.to_i
+    crop_num = self.input.to_i
 
-    until [1,2,3].include?(crop_choice)
-      puts "Not a valid crop choice. Please choose a number in [1,2,3]"
-      crop_choice = self.input.to_i
+    until [1,2,3].include?(crop_num)
+      puts "Not a valid crop choice. Please choose a number in [1,2,3]."
+      crop_num = self.input.to_i
     end
 
-    puts "where do you want to plant it? #{self.farmer.farmer_plants.pluck(:plot_number)}"
-    plot_choice = self.input
+    crop_choice = self.todays_crops[crop_num - 1]
 
-    self.plant_crop(crop_choice, plot_choice)
-    # FarmerPlant.new()
+    available_plots = [1,2,3,4,5] - self.farmer.farmer_plants.pluck(:plot_number)
+    puts "where do you want to plant it? #{available_plots}"
+
+    plot_num = self.input
+
+    until available_plots.include?(plot_num.to_i)
+      binding.pry
+      puts "That plot is full! Please choose a number in #{available_plots}."
+      plot_num = self.input
+
+      ### ADD FUNCTIONALITY TO PLANT OVER
+    end
+
+    self.plant_crop(crop_choice, plot_num)
+
+    puts "Planted #{crop_choice.name}! Would you like to plant more crops? (y/n)"
+    ans = self.input
+
+    if ans == "y"
+      self.plant_crops_screen
+    elsif ans == "n"
+      self.main_screen
+    else
+      puts "Not a valid answer, returning to main screen..."
+      self.main_screen
+    end
   end
 
 
-  def plant_crop(crop_choice, plot_choice)
-
+  def plant_crop(crop_choice, plot_num)
+    fp = FarmerPlant.create(farmer: self.farmer, plant: crop_choice, plot_number: plot_num, days_since_planted: 0, alive: 1)
+    self.farmer.farmer_plants << fp
   end
 
 
