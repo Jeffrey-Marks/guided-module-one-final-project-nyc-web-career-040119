@@ -1,5 +1,25 @@
 # Stardew Valley Command Line Game
 
+# Tasks
+* Downcase names
+* ASCII crops/title page(logo)
+* Money
+* Watering
+  * doubling growth time if watered , watered_key in Farmer table
+* (?) Someone's crop is about to die
+* Stats ('s' at any time?)
+* Random Events
+  * thunder (blasts one plant)
+  * tsunami (wipe out someone entire farm?)
+  * alien invasion "Someone has been abducted?"
+  * special crop, #add available_in_store column in plant table
+
+* '1. Harvest Crops' return by plot
+* Music
+
+
+# Notes
+
 
 <!-- # Module One Project
 
