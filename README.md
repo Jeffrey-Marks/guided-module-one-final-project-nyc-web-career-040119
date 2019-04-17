@@ -2,7 +2,9 @@
 
 # Tasks
 
-* TTY-Prompt
+* **&star; ADD LINE SPACING/BREAK LINES &star;**
+* **&star; TTY-Prompt &star;**
+* (?) Goal
 * Watering
   * doubling growth time if watered , watered_key in Farmer table
 * (?) Someone's crop is about to die
@@ -11,6 +13,17 @@
 * Music
 * Balance money
 * When you login with <$10 and all empty plots: "Your dream of becoming a farmer has failed. You move back in with your parents."
+* Not necessary to type "plot 4," just "4"
+* Add t&t in readme
+* All-time text => green
+* Ready to harvest => green
+* You harvest \_ for \_ => green
+* (?) You have "$\_\_\_".on_white
+* (?) More random encounters?
+  * 10% change for some everyday (good or bad)
+  * red pill/blue pill
+
+
 
 
 

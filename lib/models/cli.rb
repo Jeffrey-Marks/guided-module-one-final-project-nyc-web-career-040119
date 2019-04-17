@@ -43,9 +43,9 @@ class CLI
     BANNER
 
     puts banner.light_yellow
-    puts "                        ★ ".light_yellow.blink + "Welcome to SDVCLI! Please enter your name!".light_yellow + "★".light_yellow.blink
-
-    puts "                             ★ ".red.blink + "Type 'q' at any time to quit.".red.blink + "★".red.blink
+    puts "                                  ★ ".light_yellow + "Welcome to SDVCLI! ".light_yellow + "★".light_yellow
+    puts "                                ★ Please enter your name! ★".light_yellow.blink
+    puts "                             ★ ".red + "Type 'q' at any time to quit.".red.underline + "★".red
 
     name = self.input
     name.is_a?(String) ? name = name.downcase : name
@@ -55,10 +55,14 @@ class CLI
       sleep(3)
       self.abducted_animation(self.farmer.display_name)
 
-      puts "\nMissing people".red
+      puts "\nMissing people:".red
       Farmer.abducted.each_with_index do |farmer|
-        puts "#{farmer.display_name}".red
+        puts " - #{farmer.display_name}".red
       end
+
+      sleep(7.5)
+
+      system('clear')
 
     elsif self.farmer
       self.farmer.farmer_plants.reload.each do |fp|
@@ -156,7 +160,7 @@ class CLI
           FarmerPlant.delete(fp.id)
           was_a_crop_harvested = true
           ####################### ADD MONEY
-        elsif (fp == self.farmer.farmer_plants.order(:plot_number).last) && !was_a_crop_harvested
+        elsif (fp == self.farmer.farmer_plants.last) && !was_a_crop_harvested
           puts "No crops ready to harvest.".green
         end
       end
@@ -294,7 +298,7 @@ class CLI
       # pct = fp.reload.days_since_planted.to_f / fp.plant.days_to_grow.to_f
         pct = pct_grown(fp)
       if fp.reload.alive && (pct >= 1.0) && (pct < 3.0) && (fp.farmer == self.farmer)
-        puts "Your #{fp.plant.name} in Plot #{fp.plot_number} is ready to harvest!".red
+        puts "Your #{fp.plant.name} in Plot #{fp.plot_number} is ready to harvest!".red.blink
       elsif fp.reload.alive && (pct > 3.0)
         puts "#{fp.farmer.display_name}'s #{fp.plant.name} died!".red
         fp.update(alive: false)
@@ -348,7 +352,7 @@ class CLI
      if alien_test_subject
        alien_test_subject.update(abducted: true)
        puts  "#{alien_test_subject.display_name} disappeared in the middle of the night.".red.blink
-       alien_test_subject.farmer_plants.destroy_all
+       # alien_test_subject.farmer_plants.destroy_all
      end
    end
 
@@ -360,7 +364,7 @@ class CLI
    (0..str.length).to_a.each do |loc|
      system('clear')
      puts alien_str[0..loc].light_magenta
-     sleep(0.1)
+     sleep(0.05)
    end
 
    sleep(2)
@@ -368,7 +372,7 @@ class CLI
    (0..str.length-1).to_a.each do |loc|
      system('clear')
      puts str[0..loc].red + alien_str[loc+1..str.length].light_magenta
-     sleep(0.1)
+     sleep(0.05)
    end
 
    sleep(2)
@@ -376,15 +380,17 @@ class CLI
    (str.length..str.length+abducted.length).to_a.each do |loc|
      system('clear')
      puts (str + abducted)[0..loc].red
-     sleep(0.1)
+     sleep(0.05)
    end
   end
+
+
 
   def mother_nature
     farmer.farmer_plants.each do |fp|
       fp.update(days_since_planted: fp.plant.days_to_grow )
     end
-    puts "Mother Nature paid you a visit last night".green
+    puts "Mother Nature paid you a visit last night".green.blink
   end
 
 
