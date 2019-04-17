@@ -1,25 +1,22 @@
 # Stardew Valley Command Line Game
 
 # Tasks
-* Downcase names
-* ASCII crops/title page(logo)
-* Money
+
+* ASCII crops(logo)
 * Watering
   * doubling growth time if watered , watered_key in Farmer table
 * (?) Someone's crop is about to die
 * Stats ('s' at any time?)
+  * High score based on :crops_harvested
+  * Richest farmer
 * Random Events
   * thunder (blasts one plant)
   * tsunami (wipe out someone entire farm?)
   * alien invasion "Someone has been abducted?"
   * special crop, #add available_in_store column in plant table
-
-* '1. Harvest Crops' return by plot
+* '1. Harvest Crops' return by plot (currently returning in planted order)
 * Music
-* (?) plant crops from Check Crops screen
-* (?) How well you slept affects items in store
-* High score based on :crops_harvested
-* (?) Lose money everyday?
+* Balance money
 
 
 # Notes

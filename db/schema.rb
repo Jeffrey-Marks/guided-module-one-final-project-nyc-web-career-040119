@@ -16,18 +16,22 @@ ActiveRecord::Schema.define(version: 20190415192600) do
     t.integer "farmer_id"
     t.integer "plant_id"
     t.integer "plot_number"
-    t.integer "days_since_planted"
-    t.boolean "alive"
+    t.integer "days_since_planted", default: 0
+    t.boolean "alive",              default: true
   end
 
   create_table "farmers", force: :cascade do |t|
     t.string  "name"
-    t.integer "crops_harvested"
+    t.integer "money",              default: 100
+    t.integer "total_money_earned", default: 0
+    t.integer "crops_harvested",    default: 0
   end
 
   create_table "plants", force: :cascade do |t|
     t.string  "name"
     t.integer "days_to_grow"
+    t.integer "price"
+    t.integer "sells_for"
   end
 
 end

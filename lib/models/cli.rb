@@ -1,9 +1,10 @@
 class CLI
 
-  attr_accessor :farmer, :todays_crops # Actually current_user_id
+  attr_accessor :farmer, :todays_crops, :todays_luck  # Actually current_user_id
 
   def initialize
     self.todays_crops = Plant.all.sample(3)
+    self.todays_luck = 1.0
   end
 
   ##### COLOR SCHEME: LIGHT_GREEN, LIGHT_YELLOW, RED FOR WARNS
@@ -42,10 +43,12 @@ class CLI
     BANNER
 
     puts banner.light_yellow
-    puts "★ ".light_yellow.blink + "Welcome to SDVCLI! Please enter your name!".light_yellow + "★".light_yellow.blink
+    puts "                        ★ ".light_yellow.blink + "Welcome to SDVCLI! Please enter your name!".light_yellow + "★".light_yellow.blink
 
-    puts "      ★ ".red.blink + "Type 'q' at any time to quit.".red.blink + "★".red.blink
-    name = self.input.downcase
+    puts "                             ★ ".red.blink + "Type 'q' at any time to quit.".red.blink + "★".red.blink
+
+    name = self.input
+    name.is_a?(String) ? name = name.downcase : name
     self.farmer = Farmer.find_by(name: name)
 
     if self.farmer
@@ -72,7 +75,7 @@ class CLI
 
     case ans
     when "y"
-      self.farmer = Farmer.create(name: name, crops_harvested: 0)
+      self.farmer = Farmer.create(name: name)
       puts "Welcome to Stardew Valley, #{self.farmer.display_name}!".light_yellow
       ###Change name of farm
       self.main_screen
@@ -90,9 +93,9 @@ class CLI
       puts "1. Check Crops".light_green
       puts "2. Plant New Crops".light_green
       puts "3. Sleep (Slightly Grows All Crops)".light_green #SLIGHTLY GROWS (IF WATERED)
-      # puts "4. Check Stats"
-      puts "4. Log Out".light_green
-    input = get_valid_input((1..4).to_a, "Not a valid option.")
+      puts "4. Check Stats".light_green
+      puts "5. Log Out".light_green
+    input = get_valid_input((1..5).to_a, "Not a valid option.")
     # input = get_valid_input_with_default([1,2,3,4], "Not a valid option.", self.sleep_screen, "You were plagued by indecision today. You stayed in bed.")
 
     case input
@@ -103,6 +106,8 @@ class CLI
     when 3
       self.sleep_screen
     when 4
+      self.stats_screen
+    when 5
       puts "Logged Out #{self.farmer.display_name}".green
       self.welcome
     end
@@ -136,9 +141,11 @@ class CLI
       self.farmer.farmer_plants.reload.each do |fp|
         pct = pct_grown(fp)
         if fp.reload.alive && (pct >= 1.0)
-          puts "You harvested your #{fp.plant.name} from Plot #{fp.plot_number}!".green
+          ### ADD LUCK MULTIPLIER TO SELL PRICE
+          sold_for = (fp.plant.sells_for * self.todays_luck).floor
+          puts "You harvested your #{fp.plant.name} from Plot #{fp.plot_number} for $#{sold_for}!".green
+          self.farmer.update(crops_harvested: self.farmer.crops_harvested + 1, money: self.farmer.money + sold_for, total_money_earned: self.farmer.total_money_earned + sold_for)
           FarmerPlant.delete(fp.id)
-          self.farmer.update(crops_harvested: self.farmer.crops_harvested + 1)
           was_a_crop_harvested = true
           ####################### ADD MONEY
         elsif (fp == self.farmer.farmer_plants.order(:plot_number).last) && !was_a_crop_harvested
@@ -151,6 +158,7 @@ class CLI
     end
   end
 
+
   def whats_growing(plot_num)
     growing_here = self.farmer.farmer_plants.find_by_plot_number(plot_num)
 
@@ -160,6 +168,7 @@ class CLI
       "Empty".green
     end
   end
+
 
   def display_growth(farmer_plant)
     if farmer_plant.days_since_planted == 0
@@ -187,9 +196,10 @@ class CLI
 
   def plant_crops_screen
     puts "These are the crops that are available today".light_yellow
+    puts "You have $#{self.farmer.money}.".green
 
-    self.todays_crops.pluck(:name).each_with_index do |crop, index|
-      puts "#{index + 1}. #{crop}".light_green
+    self.todays_crops.each_with_index do |crop, index|
+      puts "#{index + 1}. #{crop.name} ($#{crop.price})".light_green
     end
 
     puts "4. (Go Back)".light_green
@@ -202,6 +212,11 @@ class CLI
     end
 
     crop_choice = self.todays_crops[crop_num - 1]
+
+    if self.farmer.money < crop_choice.price
+      puts "You don't have enough money to buy #{crop_choice.name} right now...".red
+      self.plant_crops_screen
+    end
 
     available_plots = (1..5).to_a - self.farmer.reload.farmer_plants.pluck(:plot_number)
 
@@ -240,7 +255,7 @@ class CLI
       end
     end
 
-    puts "Planted #{crop_choice.name}! Would you like to plant more crops? (y/n)".light_yellow
+    puts "Planted #{crop_choice.name}! You have $#{self.farmer.money}. Would you like to plant more crops? (y/n)".light_yellow
 
     ans = self.get_valid_input(['y','n'], "Not a valid option.")
 
@@ -254,8 +269,9 @@ class CLI
 
 
   def plant_crop(crop_choice, plot_num)
-    fp = FarmerPlant.create(farmer: self.farmer, plant: crop_choice, plot_number: plot_num, days_since_planted: 0, alive: 1)
+    fp = FarmerPlant.create(farmer: self.farmer, plant: crop_choice, plot_number: plot_num)
     self.farmer.farmer_plants << fp
+    self.farmer.update(money: self.farmer.money - crop_choice.price)
   end
 
 
@@ -284,7 +300,8 @@ class CLI
 
     self.todays_crops = Plant.all.sample(3)
 
-    puts "You slept ".green + self.how_well_did_you_sleep
+    # puts "You slept ".green +
+    self.how_well_did_you_sleep
 
     self.main_screen
   end
@@ -292,23 +309,48 @@ class CLI
 
   def how_well_did_you_sleep
     how_well = [
-      "well!".green,
-      "not well.".light_red,
-      "ok...".light_yellow,
-      "terribly. :(".red,
-      "great!".light_green,
-      "very well!".light_green,
-      "like a baby!".light_green,
-      "in today.".light_red,
-      "too late last night. You're tired today...".red,
-      "like an angel!".white.blink
+      [" well!".green, 1.05],
+      [" not well.".light_red, 0.80],
+      [" ok...".light_yellow, 0.90],
+      [" terribly. :(".red, 0.50],
+      [" great!".light_green, 1.2],
+      [" very well!".light_green,1.10 ],
+      [" like a baby!".light_green, 1.15],
+      [" in today.".light_red, 0.80],
+      [" too late last night. You're tired today...".red, 0.60],
+      [" like an angel!".white.blink, 1.25],
+      [". ", 1.0]
     ]
-    how_well.sample
+    sleep_quality = how_well.sample
+
+    puts "You slept".green + sleep_quality[0]
+    self.todays_luck = sleep_quality[1]
   end
 
 
-  ### GLOBAL METHODS
+  ### STATS SCREEN
 
+  def stats_screen
+    puts "Total Money Earned: $#{self.farmer.total_money_earned}   |   Total Crops Harvested: #{self.farmer.crops_harvested}".green
+
+    puts "\nAll-Time Richest Farmers:"
+    Farmer.richest_farmers.each_with_index do |farmer, index|
+      puts "    #{index + 1}. #{farmer.display_name} - $#{farmer.total_money_earned}"
+    end
+
+    puts "\nAll-Time Greenest Farmers:"
+    Farmer.greenest_farmers.each_with_index do |farmer, index|
+      puts "    #{index + 1}. #{farmer.display_name} - #{farmer.crops_harvested} Crops Harvested"
+    end
+
+    puts "\nType '1' to go back to the Main Screen.".light_yellow
+    ans = get_valid_input([1], "Type '1' to go back.")
+    self.main_screen
+  end
+
+
+
+  ### GLOBAL METHODS
 
   def input
     input = gets.chomp
