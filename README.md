@@ -2,6 +2,7 @@
 
 # Tasks
 
+* TTY-Prompt
 * Watering
   * doubling growth time if watered , watered_key in Farmer table
 * (?) Someone's crop is about to die
@@ -9,6 +10,8 @@
 * '1. Harvest Crops' return by plot (currently returning in planted order)
 * Music
 * Balance money
+* When you login with <$10 and all empty plots: "Your dream of becoming a farmer has failed. You move back in with your parents."
+
 
 
 # Notes

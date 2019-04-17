@@ -314,9 +314,9 @@ class CLI
   end
 
   def random_event
-    num = 7
+    num = rand(1..200)
     lightning = (1..6).to_a
-    aliens = [7]
+    aliens = [42]
     mother_nature = [10,11]
 
     if  lightning.include?(num)
@@ -474,7 +474,7 @@ class CLI
   end
 
   def quit
-    puts "★ ".light_yellow.blink + "Goodbye and thanks for visiting Stardew Valley!".light_yellow + "★".light_yellow.blink
+    puts "                     ★ ".light_yellow.blink + "Goodbye and thanks for visiting Stardew Valley!".light_yellow + "★".light_yellow.blink
     exit
   end
 
