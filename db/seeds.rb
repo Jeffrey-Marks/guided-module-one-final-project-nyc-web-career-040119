@@ -9,3 +9,6 @@ melon = Plant.create(name: "Melon", days_to_grow: 12, price: 110, sells_for: 350
 red_cabbage = Plant.create(name: "Red Cabbage", days_to_grow: 9, price: 90, sells_for: 260)
 starfruit = Plant.create(name: "Starfruit", days_to_grow: 13, price: 450, sells_for: 1200)
 wheat = Plant.create(name: "Wheat", days_to_grow: 2, price: 10, sells_for: 20)
+
+jeff = Farmer.create(name: "jeff", abducted: true)
+jacob = Farmer.create(name: "jacob")
