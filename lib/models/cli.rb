@@ -66,28 +66,19 @@ class CLI
       puts "3. Sleep (Slightly Grows All Crops)".light_green #SLIGHTLY GROWS (IF WATERED)
       # puts "4. Check Stats"
       puts "4. Log Out".light_green
-    # input = self.input
     input = get_valid_input((1..4).to_a, "Not a valid option.")
+    # input = get_valid_input_with_default([1,2,3,4], "Not a valid option.", self.sleep_screen, "You were plagued by indecision today. You stayed in bed.")
 
-    #list main_screen
     case input
     when 1
-      #checks crops
       self.check_crops_screen
     when 2
-      #plant new crop
       self.plant_crops_screen
     when 3
-      #sleep , increment day of all farmer_plants, reset #todays_crops
       self.sleep_screen
-      # RESET todays_crops
     when 4
-      puts "Logged Out #{self.farmer.name}".green  #logout , sends back to homepage
+      puts "Logged Out #{self.farmer.name}".green
       self.welcome
-    # else
-    #   puts "Not a valid answer".red
-    #   self.main_screen
-      #after x amount of times, put user to sleep
     end
   end
 
@@ -107,10 +98,7 @@ class CLI
     puts "2. Go Back to Main Screen".light_green
 
     ans = self.get_valid_input([1,2], "Not a valid command.".red)
-    # until [1,2].include?(ans)
-    #   puts "Not a valid command. Please choose a number in [1,2]."
-    #   ans = self.input
-    # end
+
     case ans
     when 1
       if self.farmer.farmer_plants.reload.empty?
@@ -120,13 +108,13 @@ class CLI
       was_a_crop_harvested = false
 
       self.farmer.farmer_plants.reload.each do |fp|
-        pct = fp.reload.days_since_planted.to_f / fp.plant.days_to_grow.to_f
+        pct = pct_grown(fp)
         if fp.reload.alive && (pct >= 1.0)
           puts "You harvested your #{fp.plant.name} from Plot #{fp.plot_number}!".green
           FarmerPlant.delete(fp.id)
           self.farmer.update(crops_harvested: self.farmer.crops_harvested + 1)
           was_a_crop_harvested = true
-          ### ADD MONEY
+          ####################### ADD MONEY
         elsif (fp == self.farmer.farmer_plants.order(:plot_number).last) && !was_a_crop_harvested
           puts "No crops ready to harvest.".green
         end
@@ -141,17 +129,18 @@ class CLI
     growing_here = self.farmer.farmer_plants.find_by_plot_number(plot_num)
 
     if growing_here
-      "#{growing_here.plant.name} #{percent_grown(growing_here)}"
+      "#{growing_here.plant.name} #{display_growth(growing_here)}"
     else
       "Empty".green
     end
   end
 
-  def percent_grown(farmer_plant)
+  def display_growth(farmer_plant)
     if farmer_plant.days_since_planted == 0
       "(0% grown)".green
     else
-      pct = farmer_plant.days_since_planted.to_f/farmer_plant.plant.days_to_grow.to_f
+      pct = pct_grown(farmer_plant)
+      # pct = farmer_plant.days_since_planted.to_f/farmer_plant.plant.days_to_grow.to_f
       if pct > 0.0 && pct < 0.25
         "(0% grown)".green
       elsif pct >= 0.25 && pct < 0.5
@@ -181,10 +170,6 @@ class CLI
 
     puts "Which of these crops would you like to plant? [1,2,3,4]".light_yellow
     crop_num = get_valid_input([1,2,3,4], "Not a valid crop choice.")
-    # until [1,2,3].include?(crop_num)
-    #   puts "Not a valid crop choice. Please choose a number in [1,2,3]."
-    #   crop_num = self.input
-    # end
 
     if crop_num == 4
       self.main_screen
@@ -201,19 +186,13 @@ class CLI
       puts "Available Plots: ".light_yellow + "(#{plots_str})".light_green
 
       # plot_num = get_valid_input([1,2,3,4,5], "That's not a plot!")
-      plot_num = get_valid_input(available_plots, "That plot is full or not a valid plot choice!")
-      # until available_plots.include?(plot_num)
-      #   puts "That plot is full! Please choose a number in #{available_plots}."
-      #   plot_num = self.input
-      #
-      #   ### ADD FUNCTIONALITY TO PLANT OVER
-      # end
+      plot_num = get_valid_input(available_plots, "That plot is full or it's not a valid plot choice!")
 
       self.plant_crop(crop_choice, plot_num)
     else
       puts "Sorry! No plots are available. Would you like to plant over an existing plot? (y/n)".light_yellow
       puts "WARNING! This will uproot the existing plant in that plot!".red.blink
-      #plant over eisiting plot method
+
       ans = self.get_valid_input(['y','n'], "That's not (y/n)...")
 
       case ans
@@ -257,12 +236,13 @@ class CLI
 
   ### SLEEP SCREEN
 
-  def sleep_screen
+  def sleep_screen  # Sleep , increment day of all farmer_plants
+                    # Kills overgrown crops but only removes self.farmer's overgrown crops from DB
     FarmerPlant.update_all("days_since_planted = days_since_planted + 1")
 
     FarmerPlant.all.each do |fp|
-      pct = fp.reload.days_since_planted.to_f / fp.plant.days_to_grow.to_f
-
+      # pct = fp.reload.days_since_planted.to_f / fp.plant.days_to_grow.to_f
+        pct = pct_grown(fp)
       if fp.reload.alive && (pct >= 1.0) && (pct < 3.0) && (fp.farmer == self.farmer)
         puts "Your #{fp.plant.name} in Plot #{fp.plot_number} is ready to harvest!".red
       elsif fp.reload.alive && (pct > 3.0)
@@ -281,7 +261,6 @@ class CLI
     puts "You slept ".green + self.how_well_did_you_sleep
 
     self.main_screen
-    #sleep , increment day of all farmer_plants, kill overgrown crops
   end
 
 
@@ -316,30 +295,36 @@ class CLI
   end
 
 
-  def get_valid_input(arr, err_msg)
+  def get_valid_input(options, err_msg)
     ans = self.input
-    until arr.include?(ans)
-      puts "#{err_msg} Please choose an option in #{arr}.".red
+    until options.include?(ans)
+      puts "#{err_msg} Please choose an option in #{options}.".red
       ans = self.input
     end
     ans
   end
 
-  # def get_valid_input_with_default(arr, input, err_msg,default)
-  #   counter = 0
-  #   while i <  5
-  #   until arr.include?(input)
-  #     puts "#{err_msg} Please choose an option in #{arr}.".red
-  #     input = self.input
+  # def get_valid_input_with_default(options, err_msg, default_action, default_msg)
+  #   ans = self.input
+  #   i = 0
+  #   until options.include?(ans)
+  #     puts "#{err_msg} Please choose an option in #{options}.".red
+  #     ans = self.input
   #     i += 1
+  #     if i >= 5
+  #       puts default_msg.red
+  #       default_action
+  #       # break
+  #     end
   #   end
+  # end
 
   #   end
   #   input
   # end
 
 # helper method for pct
-  def pct(farmer_plant)
+  def pct_grown(farmer_plant)
     farmer_plant.reload.days_since_planted.to_f / farmer_plant.plant.days_to_grow.to_f
   end
 
