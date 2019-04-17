@@ -41,8 +41,8 @@ class CLI
 
   def create_user(name)
     puts "Can't find any farmers with that name. Would you like to make a new farmer? (y/n)".light_yellow
-    ans = self.input
-    ans = self.get_valid_input(['y','n'], ans, "Not a valid input")
+
+    ans = self.get_valid_input(['y','n'], "Not a valid input")
 
     case ans
     when "y"
@@ -66,8 +66,8 @@ class CLI
       puts "3. Sleep (Slightly Grows All Crops)".light_green #SLIGHTLY GROWS (IF WATERED)
       # puts "4. Check Stats"
       puts "4. Log Out".light_green
-    input = self.input
-    input = get_valid_input((1..4).to_a, input, "Not a valid option.")
+    # input = self.input
+    input = get_valid_input((1..4).to_a, "Not a valid option.")
 
     #list main_screen
     case input
@@ -106,9 +106,7 @@ class CLI
     puts "1. Harvest Crops".light_green
     puts "2. Go Back to Main Screen".light_green
 
-    ans = self.input
-
-    ans = self.get_valid_input([1,2], ans, "Not a valid command.".red)
+    ans = self.get_valid_input([1,2], "Not a valid command.".red)
     # until [1,2].include?(ans)
     #   puts "Not a valid command. Please choose a number in [1,2]."
     #   ans = self.input
@@ -182,9 +180,7 @@ class CLI
     puts "4. (Go Back)".light_green
 
     puts "Which of these crops would you like to plant? [1,2,3,4]".light_yellow
-    crop_num = self.input
-
-    crop_num = get_valid_input([1,2,3,4], crop_num, "Not a valid crop choice.")
+    crop_num = get_valid_input([1,2,3,4], "Not a valid crop choice.")
     # until [1,2,3].include?(crop_num)
     #   puts "Not a valid crop choice. Please choose a number in [1,2,3]."
     #   crop_num = self.input
@@ -204,10 +200,8 @@ class CLI
       puts "(Pick the number of the plot)".light_yellow
       puts "Available Plots: ".light_yellow + "(#{plots_str})".light_green
 
-      plot_num = self.input
-
-      plot_num = get_valid_input([1,2,3,4,5], plot_num, "That's not a plot!")
-      plot_num = get_valid_input(available_plots, plot_num, "That plot is full!")
+      # plot_num = get_valid_input([1,2,3,4,5], "That's not a plot!")
+      plot_num = get_valid_input(available_plots, "That plot is full or not a valid plot choice!")
       # until available_plots.include?(plot_num)
       #   puts "That plot is full! Please choose a number in #{available_plots}."
       #   plot_num = self.input
@@ -220,8 +214,7 @@ class CLI
       puts "Sorry! No plots are available. Would you like to plant over an existing plot? (y/n)".light_yellow
       puts "WARNING! This will uproot the existing plant in that plot!".red.blink
       #plant over eisiting plot method
-      ans = self.input
-      ans = self.get_valid_input(['y','n'], ans, "That's not (y/n)...")
+      ans = self.get_valid_input(['y','n'], "That's not (y/n)...")
 
       case ans
       when 'y'
@@ -231,8 +224,7 @@ class CLI
           puts "Plot #{plot_num}: #{self.whats_growing(plot_num)}".green
         end
 
-        plot_num = self.input
-        plot_num = self.get_valid_input((1..5).to_a, plot_num, "That's not a plot!")
+        plot_num = self.get_valid_input((1..5).to_a, "That's not a plot!")
 
         fp = FarmerPlant.find_by(farmer: self.farmer, plot_number: plot_num)
         FarmerPlant.destroy(fp.id)
@@ -244,9 +236,8 @@ class CLI
     end
 
     puts "Planted #{crop_choice.name}! Would you like to plant more crops? (y/n)".light_yellow
-    ans = self.input
 
-    ans = self.get_valid_input(['y','n'], ans, "Not a valid option.")
+    ans = self.get_valid_input(['y','n'], "Not a valid option.")
 
     case ans
     when "y"
@@ -325,26 +316,27 @@ class CLI
   end
 
 
-  def get_valid_input(arr, input, err_msg)
-    until arr.include?(input)
+  def get_valid_input(arr, err_msg)
+    ans = self.input
+    until arr.include?(ans)
       puts "#{err_msg} Please choose an option in #{arr}.".red
-      input = self.input
+      ans = self.input
     end
-    input
+    ans
   end
 
-  def get_valid_input_with_default(arr, input, err_msg,default)
-    counter = 0
-    while i <  5
-    until arr.include?(input)
-      puts "#{err_msg} Please choose an option in #{arr}.".red
-      input = self.input
-      i += 1
-    end
+  # def get_valid_input_with_default(arr, input, err_msg,default)
+  #   counter = 0
+  #   while i <  5
+  #   until arr.include?(input)
+  #     puts "#{err_msg} Please choose an option in #{arr}.".red
+  #     input = self.input
+  #     i += 1
+  #   end
 
-    end
-    input
-  end
+  #   end
+  #   input
+  # end
 
 # helper method for pct
   def pct(farmer_plant)
