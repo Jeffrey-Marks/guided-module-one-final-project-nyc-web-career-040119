@@ -16,8 +16,8 @@ class Farmer < ActiveRecord::Base
 
   def self.abducted
     self.all.select do |farmer|
-      farmer.abducted == true
-    end 
+      farmer.abducted
+    end
   end
 
 end

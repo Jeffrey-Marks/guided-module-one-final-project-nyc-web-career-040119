@@ -51,21 +51,22 @@ class CLI
     name.is_a?(String) ? name = name.downcase : name
     self.farmer = Farmer.find_by(name: name)
 
-      if self.farmer && self.farmer.abducted
-          sleep(3)
-          self.abducted_animation(self.farmer.display_name)
-          puts "\nMissing people".red
-          Farmer.abducted.each_with_index do |farmer|
-            puts "#{farmer.display_name}".red
-          end
+    if self.farmer && self.farmer.abducted
+      sleep(3)
+      self.abducted_animation(self.farmer.display_name)
 
-      elsif self.farmer
-        self.farmer.farmer_plants.reload.each do |fp|
-          if !fp.alive
-            puts "Your #{fp.plant.name} died while you were away... :(".red
-            FarmerPlant.delete(fp.id)
-          end
+      puts "\nMissing people".red
+      Farmer.abducted.each_with_index do |farmer|
+        puts "#{farmer.display_name}".red
+      end
+
+    elsif self.farmer
+      self.farmer.farmer_plants.reload.each do |fp|
+        if !fp.alive
+          puts "Your #{fp.plant.name} died while you were away... :(".red
+          FarmerPlant.delete(fp.id)
         end
+      end
 
       puts "Welcome back, #{self.farmer.display_name}!".light_yellow
       self.main_screen
@@ -313,6 +314,7 @@ class CLI
     self.main_screen
   end
 
+
   def random_event
     num = rand(1..200)
     lightning = (1..6).to_a
@@ -321,13 +323,13 @@ class CLI
 
     if  lightning.include?(num)
         self.lightning
-      elsif aliens.include?(num)
-          self.aliens
-      elsif mother_nature.include?(num)
+    elsif aliens.include?(num)
+        self.aliens
+    elsif mother_nature.include?(num)
           self.mother_nature
     end
-
   end
+
 
   def lightning
     num = rand(1..5)
@@ -342,11 +344,13 @@ class CLI
   end
 
   def aliens
-    binding.pry
-    alien_test_subject = Farmer.where.not(id: self.farmer.id).sample
-    alien_test_subject.update(abducted: true)
-    puts  "#{alien_test_subject.display_name} disappeared in the middle of the night.".red.blink
-  end
+     alien_test_subject = Farmer.where(abducted: false).where.not(id: self.farmer.id).sample
+     if alien_test_subject
+       alien_test_subject.update(abducted: true)
+       puts  "#{alien_test_subject.display_name} disappeared in the middle of the night.".red.blink
+       alien_test_subject.farmer_plants.destroy_all
+     end
+   end
 
   def abducted_animation(name)
    str = "\"Hello I'm from another planet. Please come with me.\"" #.red
@@ -377,8 +381,8 @@ class CLI
   end
 
   def mother_nature
-    farmer.farmer_plants.each do |plant|
-      plant.update(days_since_planted: plant.plant.days_to_grow )
+    farmer.farmer_plants.each do |fp|
+      fp.update(days_since_planted: fp.plant.days_to_grow )
     end
     puts "Mother Nature paid you a visit last night".green
   end
