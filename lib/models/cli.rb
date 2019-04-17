@@ -19,7 +19,7 @@ class CLI
     puts "★ ".light_yellow.blink + "Welcome to SDVCLI! Please enter your name!".light_yellow + "★".light_yellow.blink
 
     puts "      ★ ".red.blink + "Type 'q' at any time to quit.".red.blink + "★".red.blink
-    name = self.input
+    name = self.input.downcase
     self.farmer = Farmer.find_by(name: name)
 
     if self.farmer
@@ -31,7 +31,7 @@ class CLI
         end
       end
 
-      puts "Welcome back, #{self.farmer.name}!".light_yellow
+      puts "Welcome back, #{self.farmer.display_name}!".light_yellow
       self.main_screen
     else
       self.create_user(name)
@@ -47,7 +47,7 @@ class CLI
     case ans
     when "y"
       self.farmer = Farmer.create(name: name, crops_harvested: 0)
-      puts "Welcome to Stardew Valley, #{self.farmer.name}!"
+      puts "Welcome to Stardew Valley, #{self.farmer.display_name}!".light_yellow
       ###Change name of farm
       self.main_screen
     when "n"
@@ -77,7 +77,7 @@ class CLI
     when 3
       self.sleep_screen
     when 4
-      puts "Logged Out #{self.farmer.name}".green
+      puts "Logged Out #{self.farmer.display_name}".green
       self.welcome
     end
   end
@@ -246,7 +246,7 @@ class CLI
       if fp.reload.alive && (pct >= 1.0) && (pct < 3.0) && (fp.farmer == self.farmer)
         puts "Your #{fp.plant.name} in Plot #{fp.plot_number} is ready to harvest!".red
       elsif fp.reload.alive && (pct > 3.0)
-        puts "#{fp.farmer.name}'s #{fp.plant.name} died!".red
+        puts "#{fp.farmer.display_name}'s #{fp.plant.name} died!".red
         fp.update(alive: false)
         # fp.alive = false ### ONLY AFFECTS CLASS INSTANCE, DOESN'T PUSH CHANGES TO DB
         # fp.save
