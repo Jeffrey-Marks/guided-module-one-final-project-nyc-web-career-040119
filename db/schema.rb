@@ -25,6 +25,7 @@ ActiveRecord::Schema.define(version: 20190415192600) do
     t.integer "money",              default: 100
     t.integer "total_money_earned", default: 0
     t.integer "crops_harvested",    default: 0
+    t.boolean "abducted",           default: false
   end
 
   create_table "plants", force: :cascade do |t|

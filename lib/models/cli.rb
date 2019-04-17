@@ -51,14 +51,21 @@ class CLI
     name.is_a?(String) ? name = name.downcase : name
     self.farmer = Farmer.find_by(name: name)
 
-    if self.farmer
-      ### REMOVE DEAD CROPS FROM TABLE HERE
-      self.farmer.farmer_plants.reload.each do |fp|
-        if !fp.alive
-          puts "Your #{fp.plant.name} died while you were away... :(".red
-          FarmerPlant.delete(fp.id)
+      if self.farmer && self.farmer.abducted
+          sleep(3)
+          self.abducted_animation(self.farmer.display_name)
+          puts "\nMissing people".red
+          Farmer.abducted.each_with_index do |farmer|
+            puts "#{farmer.display_name}".red
+          end
+
+      elsif self.farmer
+        self.farmer.farmer_plants.reload.each do |fp|
+          if !fp.alive
+            puts "Your #{fp.plant.name} died while you were away... :(".red
+            FarmerPlant.delete(fp.id)
+          end
         end
-      end
 
       puts "Welcome back, #{self.farmer.display_name}!".light_yellow
       self.main_screen
@@ -281,7 +288,7 @@ class CLI
   def sleep_screen  # Sleep , increment day of all farmer_plants
                     # Kills overgrown crops but only removes self.farmer's overgrown crops from DB
     FarmerPlant.update_all("days_since_planted = days_since_planted + 1")
-
+    self.random_event
     FarmerPlant.all.each do |fp|
       # pct = fp.reload.days_since_planted.to_f / fp.plant.days_to_grow.to_f
         pct = pct_grown(fp)
@@ -302,9 +309,80 @@ class CLI
 
     # puts "You slept ".green +
     self.how_well_did_you_sleep
-
+    #random event
     self.main_screen
   end
+
+  def random_event
+    num = 7
+    lightning = (1..6).to_a
+    aliens = [7]
+    mother_nature = [10,11]
+
+    if  lightning.include?(num)
+        self.lightning
+      elsif aliens.include?(num)
+          self.aliens
+      elsif mother_nature.include?(num)
+          self.mother_nature
+    end
+
+  end
+
+  def lightning
+    num = rand(1..5)
+    plot_hit = self.farmer.farmer_plants.find_by(plot_number: num)
+    if plot_hit
+      puts  "Lightning struck last night! It vaporized your #{plot_hit.plant.name} in Plot #{num} :C ".red.blink
+      FarmerPlant.delete(plot_hit.id)
+    else
+      puts "Lightning struck last night!".red + " Luckily nothing was planted in Plot #{num}".green
+    end
+
+  end
+
+  def aliens
+    binding.pry
+    alien_test_subject = Farmer.where.not(id: self.farmer.id).sample
+    alien_test_subject.update(abducted: true)
+    puts  "#{alien_test_subject.display_name} disappeared in the middle of the night.".red.blink
+  end
+
+  def abducted_animation(name)
+   str = "\"Hello I'm from another planet. Please come with me.\"" #.red
+   alien_str = (1..53).to_a.map{(32..126).to_a.sample.chr}.join
+   abducted = "\n.........#{name} disappeared in the middle of the night." #.red
+
+   (0..str.length).to_a.each do |loc|
+     system('clear')
+     puts alien_str[0..loc].light_magenta
+     sleep(0.1)
+   end
+
+   sleep(2)
+
+   (0..str.length-1).to_a.each do |loc|
+     system('clear')
+     puts str[0..loc].red + alien_str[loc+1..str.length].light_magenta
+     sleep(0.1)
+   end
+
+   sleep(2)
+
+   (str.length..str.length+abducted.length).to_a.each do |loc|
+     system('clear')
+     puts (str + abducted)[0..loc].red
+     sleep(0.1)
+   end
+  end
+
+  def mother_nature
+    farmer.farmer_plants.each do |plant|
+      plant.update(days_since_planted: plant.plant.days_to_grow )
+    end
+    puts "Mother Nature paid you a visit last night".green
+  end
+
 
 
   def how_well_did_you_sleep
@@ -361,7 +439,6 @@ class CLI
     end
     #insert 's' , show stats at any time
   end
-
 
   def get_valid_input(options, err_msg)
     ans = self.input

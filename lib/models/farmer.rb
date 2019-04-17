@@ -13,4 +13,11 @@ class Farmer < ActiveRecord::Base
   def self.greenest_farmers
     self.all.order(crops_harvested: :desc).first(3)
   end
+
+  def self.abducted
+    self.all.select do |farmer|
+      farmer.abducted == true
+    end 
+  end
+
 end

@@ -2,18 +2,10 @@
 
 # Tasks
 
-* ASCII crops(logo)
 * Watering
   * doubling growth time if watered , watered_key in Farmer table
 * (?) Someone's crop is about to die
-* Stats ('s' at any time?)
-  * High score based on :crops_harvested
-  * Richest farmer
-* Random Events
-  * thunder (blasts one plant)
-  * tsunami (wipe out someone entire farm?)
-  * alien invasion "Someone has been abducted?"
-  * special crop, #add available_in_store column in plant table
+
 * '1. Harvest Crops' return by plot (currently returning in planted order)
 * Music
 * Balance money
