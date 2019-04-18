@@ -208,7 +208,7 @@ class CLI
 
   def plant_crops_screen
     puts "These are the crops that are available today".light_yellow
-    puts "You have".green + "$#{self.farmer.money}.".
+    puts "You have".green + " $#{self.farmer.money}.".white
 
     self.todays_crops.each_with_index do |crop, index|
       puts "#{index + 1}. #{crop.name} ($#{crop.price})".light_green
