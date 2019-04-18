@@ -1,33 +1,54 @@
-# Stardew Valley Command Line Game
+## Stardew Valley Command Line Game
+
+##### How to Install and Run SDVCLI
+
+1. The gem "catpix" requires the program ImageMagick to be installed.
+
+  * On MacOS: `brew install imagemagick`
+  * On Linux: `sudo apt-get install libmagickwand-dev`
+
+2. Afterwards run `bundle install` to install necessary gems.
+
+3. Run `rake db:migrate` to create the database files.
+
+4. Run `rake db:seed` to fill the databases with the necessary information.
+
+5. From parent directory, run `ruby bin/run.rb`
+
+Happy farming!
+
+
+##### Hints
+
+Some crops take a while to grow. It might take a few days before you start noticing growth!
+
+
+
+
 
 # Tasks
 
 * **&star; ADD LINE SPACING/BREAK LINES &star;**
-* **&star; TTY-Prompt &star;**
+<!-- * **&star; TTY-Prompt &star;** -->
+* **&star; README (hints, etc.) &star;**
 * (?) Goal
 * Watering
   * doubling growth time if watered , watered_key in Farmer table
 * (?) Someone's crop is about to die
 
-* '1. Harvest Crops' return by plot (currently returning in planted order)
-* Music
+<!-- * '1. Harvest Crops' return by plot (currently returning in planted order) -->
+<!-- * Music -->
 * Balance money
-* When you login with <$10 and all empty plots: "Your dream of becoming a farmer has failed. You move back in with your parents."
-* Not necessary to type "plot 4," just "4"
-* Add t&t in readme
-* All-time text => green
-* Ready to harvest => green
-* You harvest \_ for \_ => green
-* (?) You have "$\_\_\_".on_white
+<!-- * When you login with <$10 and all empty plots: "Your dream of becoming a farmer has failed. You move back in with your parents." -->
+<!-- * Not necessary to type "plot 4," just "4" -->
+<!-- * Add t&t in readme -->
+<!-- * All-time text => green -->
+<!-- * Ready to harvest => green -->
+<!-- * You harvest \_ for \_ => green -->
+<!-- * (?) You have "$\_\_\_".on_white -->
 * (?) More random encounters?
   * 10% change for some everyday (good or bad)
-  * red pill/blue pill
-
-
-
-
-
-# Notes
+  <!-- * red pill/blue pill -->
 
 
 <!-- # Module One Project
