@@ -320,7 +320,7 @@ class CLI
 
 
   def random_event
-    num = 1 #rand(1..200)
+    num = rand(1..200)
     lightning = (2..7).to_a
     aliens = [42]
     mother_nature = [10,11]
