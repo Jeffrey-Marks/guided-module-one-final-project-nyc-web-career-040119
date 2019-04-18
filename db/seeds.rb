@@ -10,5 +10,13 @@ red_cabbage = Plant.create(name: "Red Cabbage", days_to_grow: 9, price: 90, sell
 starfruit = Plant.create(name: "Starfruit", days_to_grow: 13, price: 450, sells_for: 1200)
 wheat = Plant.create(name: "Wheat", days_to_grow: 2, price: 10, sells_for: 20)
 
+yam = Plant.create(name: "Yam", days_to_grow: 3, price: 30, sells_for: 50)
+pumpkin = Plant.create(name: "Pumpkin", days_to_grow: 12, price: 100, sells_for: 220)
+egg_plant = Plant.create(name: "Egg Plant", days_to_grow: 5, price: 20, sells_for: 30)
+bok_choy = Plant.create(name: "Bok Choy", days_to_grow: 3, price: 50, sells_for: 120)
+beets = Plant.create(name: "Beets", days_to_grow: 7, price: 60, sells_for: 90)
+ancient_fruit = Plant.create(name: "Ancient Fruit", days_to_grow: 15, price: 550, sells_for: 1800)
+
+
 jeff = Farmer.create(name: "jeff", abducted: true)
 jacob = Farmer.create(name: "jacob")

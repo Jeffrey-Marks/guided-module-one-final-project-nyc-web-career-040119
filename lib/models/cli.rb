@@ -208,7 +208,7 @@ class CLI
 
   def plant_crops_screen
     puts "These are the crops that are available today".light_yellow
-    puts "You have $#{self.farmer.money}.".green
+    puts "You have".green + "$#{self.farmer.money}.".
 
     self.todays_crops.each_with_index do |crop, index|
       puts "#{index + 1}. #{crop.name} ($#{crop.price})".light_green
@@ -298,7 +298,7 @@ class CLI
       # pct = fp.reload.days_since_planted.to_f / fp.plant.days_to_grow.to_f
         pct = pct_grown(fp)
       if fp.reload.alive && (pct >= 1.0) && (pct < 3.0) && (fp.farmer == self.farmer)
-        puts "Your #{fp.plant.name} in Plot #{fp.plot_number} is ready to harvest!".red.blink
+        puts "Your #{fp.plant.name} in Plot #{fp.plot_number} is ready to harvest!".green.blink
       elsif fp.reload.alive && (pct > 3.0)
         puts "#{fp.farmer.display_name}'s #{fp.plant.name} died!".red
         fp.update(alive: false)
@@ -321,16 +321,19 @@ class CLI
 
   def random_event
     num = rand(1..200)
-    lightning = (1..6).to_a
+    lightning = (2..7).to_a
     aliens = [42]
     mother_nature = [10,11]
+    morpheus = [1,100]
 
     if  lightning.include?(num)
         self.lightning
     elsif aliens.include?(num)
         self.aliens
     elsif mother_nature.include?(num)
-          self.mother_nature
+        self.mother_nature
+    elsif morpheus.include?(num)
+        self.morpheus
     end
   end
 
@@ -347,6 +350,7 @@ class CLI
 
   end
 
+
   def aliens
      alien_test_subject = Farmer.where(abducted: false).where.not(id: self.farmer.id).sample
      if alien_test_subject
@@ -355,6 +359,7 @@ class CLI
        # alien_test_subject.farmer_plants.destroy_all
      end
    end
+
 
   def abducted_animation(name)
    str = "\"Hello I'm from another planet. Please come with me.\"" #.red
@@ -385,7 +390,6 @@ class CLI
   end
 
 
-
   def mother_nature
     farmer.farmer_plants.each do |fp|
       fp.update(days_since_planted: fp.plant.days_to_grow )
@@ -393,6 +397,73 @@ class CLI
     puts "Mother Nature paid you a visit last night".green.blink
   end
 
+
+  def morpheus
+    3.times do
+      puts "*knock*".red
+      sleep(1)
+    end
+
+    puts "A strange man is at your door...".green
+    sleep(2)
+    puts  "Do you choose to open the door? (y/n)".light_yellow
+    ans = get_valid_input(['y','n'], "Not (y/n).")
+    until ans == 'y'
+      puts  "Do you choose to open the door? (y)".light_yellow
+      ans = self.input
+    end
+
+    puts "You take the ".green + "blue pill".cyan + " - the story ends, you wake up in your bed and ".green
+    puts "believe whatever you want to believe. You take the".green + " red pill".red + " - you stay".green
+    puts "in Wonderland, and I show you how ".green + "deep".magenta + " the rabbit hole goes.".green
+    puts "Remember: all I'm offering is ".green + "the truth".white + ". Nothing more.".green
+    puts "blue".cyan + " or " + "red".red
+
+    ans = get_valid_input(["blue","red"],"blue or red")
+
+    if ans == "blue"
+      puts "You had a strange dream last night, but you can't quite remember...".green
+      self.todays_luck = 2.2
+      self.main_screen
+    elsif ans == "red"
+      self.down_the_rabbit_hole
+    end
+  end
+
+
+  def down_the_rabbit_hole
+    colors = ["red", "yellow", "light_yellow", "green", "light_blue", "blue", "magenta"]
+    letters = (32..126).map{ |x| x.chr}
+    pause = 1
+    distort = 1
+
+    sleep(3)
+    str = "......The rabbit hole goes"
+    sleep(1)
+
+    (0..str.length).to_a.each do |loc|
+      system('clear')
+      puts str[0..loc].red
+      sleep(0.05)
+    end
+
+    sleep(1)
+    puts "d".red
+    sleep(1)
+
+    (1.. 25000).to_a.each do |i|
+      if rand < distort
+        puts "e".send(colors[i % 7])
+      else
+        puts letters.sample.send(colors[i % 7])
+      end
+      sleep(pause)
+      pause *= 0.95
+      distort *= 0.99
+    end
+
+    system('clear')
+  end
 
 
   def how_well_did_you_sleep
