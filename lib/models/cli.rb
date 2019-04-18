@@ -320,20 +320,21 @@ class CLI
 
 
   def random_event
-    num = rand(1..200)
+    num = 1 #rand(1..200)
     lightning = (2..7).to_a
     aliens = [42]
     mother_nature = [10,11]
     morpheus = [1,100]
 
-    if  lightning.include?(num)
-        self.lightning
+    if lightning.include?(num)
+      self.lightning
     elsif aliens.include?(num)
-        self.aliens
+      self.aliens
     elsif mother_nature.include?(num)
-        self.mother_nature
+      self.mother_nature
     elsif morpheus.include?(num)
-        self.morpheus
+      self.morpheus
+      exit
     end
   end
 
@@ -362,31 +363,31 @@ class CLI
 
 
   def abducted_animation(name)
-   str = "\"Hello I'm from another planet. Please come with me.\"" #.red
-   alien_str = (1..53).to_a.map{(32..126).to_a.sample.chr}.join
-   abducted = "\n.........#{name} disappeared in the middle of the night." #.red
+    str = "\"Hello I'm from another planet. Please come with me.\"" #.red
+    alien_str = (1..53).to_a.map{(32..126).to_a.sample.chr}.join
+    abducted = "\n.........#{name} disappeared in the middle of the night." #.red
 
-   (0..str.length).to_a.each do |loc|
-     system('clear')
-     puts alien_str[0..loc].light_magenta
-     sleep(0.05)
-   end
+    (0..str.length).to_a.each do |loc|
+      system('clear')
+      puts alien_str[0..loc].light_magenta
+      sleep(0.05)
+    end
 
-   sleep(2)
+    sleep(2)
 
-   (0..str.length-1).to_a.each do |loc|
-     system('clear')
-     puts str[0..loc].red + alien_str[loc+1..str.length].light_magenta
-     sleep(0.05)
-   end
+    (0..str.length-1).to_a.each do |loc|
+      system('clear')
+      puts str[0..loc].red + alien_str[loc+1..str.length].light_magenta
+      sleep(0.05)
+    end
 
-   sleep(2)
+    sleep(2)
 
-   (str.length..str.length+abducted.length).to_a.each do |loc|
-     system('clear')
-     puts (str + abducted)[0..loc].red
-     sleep(0.05)
-   end
+    (str.length..str.length+abducted.length).to_a.each do |loc|
+      system('clear')
+      puts (str + abducted)[0..loc].red
+      sleep(0.05)
+    end
   end
 
 
@@ -492,14 +493,14 @@ class CLI
   def stats_screen
     puts "Total Money Earned: $#{self.farmer.total_money_earned}   |   Total Crops Harvested: #{self.farmer.crops_harvested}".green
 
-    puts "\nAll-Time Richest Farmers:"
+    puts "\nAll-Time Richest Farmers:".green
     Farmer.richest_farmers.each_with_index do |farmer, index|
-      puts "    #{index + 1}. #{farmer.display_name} - $#{farmer.total_money_earned}"
+      puts "    #{index + 1}. #{farmer.display_name} - $#{farmer.total_money_earned}".green
     end
 
-    puts "\nAll-Time Greenest Farmers:"
+    puts "\nAll-Time Greenest Farmers:".green
     Farmer.greenest_farmers.each_with_index do |farmer, index|
-      puts "    #{index + 1}. #{farmer.display_name} - #{farmer.crops_harvested} Crops Harvested"
+      puts "    #{index + 1}. #{farmer.display_name} - #{farmer.crops_harvested} Crops Harvested".green
     end
 
     puts "\nType '1' to go back to the Main Screen.".light_yellow
