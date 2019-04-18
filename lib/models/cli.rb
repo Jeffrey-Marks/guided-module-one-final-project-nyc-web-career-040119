@@ -1,5 +1,4 @@
 class CLI
-
   attr_accessor :farmer, :todays_crops, :todays_luck  # Actually current_user_id
 
   def initialize
@@ -17,81 +16,78 @@ class CLI
   ##### LOGIN SCREEN
 
   def welcome
-    banner = <<-BANNER
-                                                        *,                                 ..
-                                                    .*#//(.                             ./,
-   *,/     *,                                       /(((,(                             ,,./.
-    *.,  .*,                                         ***.                              ..,
-*,*,. *%##(/(##. /##/#%####%   *##%     .,#%(##%.  .//%%/#%#/   ,/#%#####%# .##(     *#%      (#%
- *,...(##,.....  ....##%,,,,  .##%*.    ..##..,### .*/#%,*((##  ,(##.......  .(#,   .*###    *##.
-     .(#%            ##%      *##/(#     .(#  ./##   /#%  ..##* ,(##         .((#   *(*/#.  ,##(
-      (###%#/.       (#%      /#%*##/    ./%*#(#(    /#%    /#& ,###.....     .##. .##*(#%  ##%
-      ..*(###((      ##%    (%#(***((,   .##.//,     /#%    /#% ,##%(#(((     .,## (((..(#**(#.
-          ..###      #%%    ,**/(###/#*  .##.,#%,    /#%    ##( ,###           .(#,/#.  .#,#(#
-    .%(,,,,/###      /#%    *#%.....###  .## .*#%.  ,/#%,**###  ,(##            .,##*    ,###.
-    ,(/#######       ##%   .##*     ,##/ .##  .(##. */(%/((#(   ,(%#######(      (##     *(#.
-      ......         . .    ..      ...  ..    ....  ...        ...........      ..      ...
+    # Catpix::print_image "lib/stardew_valley.png", limit_x: 0.5
 
-             (#*     ,#%.    .#.       /##.       .###.       */#(######* .*#%.  .(#%
-            ..(%*    ##*    /##/*      /(%.       ./##.       *(#*......   .#(#  ((#*..,
-           .,.*#%   /#/    .##%/#,     /(%.       *#%#        *(#*          ,##(.##*  ,,,,
-          **.,.##( ,##     (##,((#     /##.       ./##        *##******     ./(###%      .
-         .,,*  ,/#*##(   ,##%%##%//..  /#%.       .(##        *##((#/(/      .####.
-          ./   ./(*(%.   ./(*(###(((   /##.        ((#.       *(#*           .,###
-                .,(##    ,##*   .(##.  /##.        ((%.       *(#*            ./##
-                 (/#    ./##     .(##  //#,#((###. *(%(##%### */#*(((###*     ,(##
-    BANNER
+    prompt = TTY::Prompt.new
+    ans = prompt.select("", ["Login", "Quit"])
 
-    puts banner.light_yellow
-    puts "                                  ★ ".light_yellow + "Welcome to SDVCLI! ".light_yellow + "★".light_yellow
-    puts "                                ★ Please enter your name! ★".light_yellow.blink
-    puts "                             ★ ".red + "Type 'q' at any time to quit.".red.underline + "★".red
+    if ans == "Login"
+      puts "Please enter your name!".light_yellow
+      name = self.input
+      name.is_a?(String) ? name = name.downcase : name
+      self.farmer = Farmer.find_by(name: name)
 
-    name = self.input
-    name.is_a?(String) ? name = name.downcase : name
-    self.farmer = Farmer.find_by(name: name)
-
-    if self.farmer && self.farmer.abducted
-      sleep(3)
-      self.abducted_animation(self.farmer.display_name)
-
-      puts "\nMissing people:".red
-      Farmer.abducted.each_with_index do |farmer|
-        puts " - #{farmer.display_name}".red
+      if self.farmer && self.farmer.abducted
+        self.abduction_screen
+      elsif self.farmer
+        self.login
+      else
+        self.create_user(name)
       end
-
-      sleep(7.5)
-
-      system('clear')
-
-    elsif self.farmer
-      self.farmer.farmer_plants.reload.each do |fp|
-        if !fp.alive
-          puts "Your #{fp.plant.name} died while you were away... :(".red
-          FarmerPlant.delete(fp.id)
-        end
-      end
-
-      puts "Welcome back, #{self.farmer.display_name}!".light_yellow
-      self.main_screen
-    else
-      self.create_user(name)
+    elsif ans == "Quit"
+      self.quit
     end
   end
 
 
-  def create_user(name)
-    puts "Can't find any farmers with that name. Would you like to make a new farmer? (y/n)".light_yellow
+  def login
+    self.farmer.farmer_plants.reload.each do |fp|
+      if !fp.alive
+        puts "Your #{fp.plant.name} died while you were away... :(".red
+        FarmerPlant.delete(fp.id)
+      end
+    end
 
-    ans = self.get_valid_input(['y','n'], "Not a valid input")
+    if self.farmer.farmer_plants.reload.empty? && self.farmer.reload.money <= 20
+      sleep(3)
+      puts "          Your dream of becoming a farmer has failed. You move back in with your parents."
+      self.farmer.delete
+      self.quit
+    end
+
+    puts "Welcome back, #{self.farmer.display_name}!".light_yellow
+    self.main_screen
+  end
+
+
+  def abduction_screen
+    sleep(3)
+    self.abducted_animation(self.farmer.display_name)
+
+    puts "\nMissing people:".red
+    Farmer.abducted.each_with_index do |farmer|
+      puts " - #{farmer.display_name}".red
+    end
+
+    sleep(7.5)
+
+    system('clear')
+  end
+
+
+  def create_user(name)
+    prompt = TTY::Prompt.new
+    puts "Can't find any farmers with that name.".light_yellow
+
+    ans = prompt.yes?("Make a new farmer with that name?".light_yellow)
 
     case ans
-    when "y"
+    when true
       self.farmer = Farmer.create(name: name)
       puts "Welcome to Stardew Valley, #{self.farmer.display_name}!".light_yellow
       ###Change name of farm
       self.main_screen
-    when "n"
+    when false
       self.welcome
     end
   end
@@ -101,25 +97,29 @@ class CLI
   ##### MAIN SCREEN
 
   def main_screen
-    puts "Enter the option number you want to perform.".light_yellow
-      puts "1. Check Crops".light_green
-      puts "2. Plant New Crops".light_green
-      puts "3. Sleep (Slightly Grows All Crops)".light_green #SLIGHTLY GROWS (IF WATERED)
-      puts "4. Check Stats".light_green
-      puts "5. Log Out".light_green
-    input = get_valid_input((1..5).to_a, "Not a valid option.")
+    prompt = TTY::Prompt.new
+    # puts "Enter the option number you want to perform.".light_yellow
+    ans = prompt.select("What would you like to do today?".light_yellow, [
+      "Check Crops", "Plant New Crops", "Sleep (Slightly Grows All Crops)", "Check Stats", "Log Out"
+    ])
+    # puts "1. Check Crops".light_green
+    # puts "2. Plant New Crops".light_green
+    # puts "3. Sleep (Slightly Grows All Crops)".light_green #SLIGHTLY GROWS (IF WATERED)
+    # puts "4. Check Stats".light_green
+    # puts "5. Log Out".light_green
+    # input = get_valid_input((1..5).to_a, "Not a valid option.")
     # input = get_valid_input_with_default([1,2,3,4], "Not a valid option.", self.sleep_screen, "You were plagued by indecision today. You stayed in bed.")
 
-    case input
-    when 1
+    case ans
+    when "Check Crops"
       self.check_crops_screen
-    when 2
+    when "Plant New Crops"
       self.plant_crops_screen
-    when 3
+    when "Sleep (Slightly Grows All Crops)"
       self.sleep_screen
-    when 4
+    when "Check Stats"
       self.stats_screen
-    when 5
+    when "Log Out"
       puts "Logged Out #{self.farmer.display_name}".green
       self.welcome
     end
@@ -136,14 +136,16 @@ class CLI
       puts "Plot #{plot_num}: #{self.whats_growing(plot_num)}".green
     end
 
-    puts "What would you like to do?".light_yellow
-    puts "1. Harvest Crops".light_green
-    puts "2. Go Back to Main Screen".light_green
+    prompt = TTY::Prompt.new
+    ans = prompt.select("What would you like to do?".light_yellow, ["Harvest Crops", "Go Back to Main Screen"])
+    # puts "What would you like to do?".light_yellow
+    # puts "1. Harvest Crops".light_green
+    # puts "2. Go Back to Main Screen".light_green
 
-    ans = self.get_valid_input([1,2], "Not a valid command.".red)
+    # ans = self.get_valid_input([1,2], "Not a valid command.".red)
 
     case ans
-    when 1
+    when "Harvest Crops"
       if self.farmer.farmer_plants.reload.empty?
         puts "No crops ready to harvest.".green
       end
@@ -165,7 +167,7 @@ class CLI
         end
       end
       self.check_crops_screen
-    when  2
+    when "Go Back to Main Screen"
       self.main_screen
     end
   end
@@ -207,74 +209,91 @@ class CLI
   ##### PLANT CROPS
 
   def plant_crops_screen
+    prompt = TTY::Prompt.new
+
     puts "These are the crops that are available today".light_yellow
     puts "You have".green + " $#{self.farmer.money}.".white
 
-    self.todays_crops.each_with_index do |crop, index|
-      puts "#{index + 1}. #{crop.name} ($#{crop.price})".light_green
+
+    self.todays_crops.each do |crop|
+      puts "#{crop.name} ($#{crop.price})".light_green
     end
+    # self.todays_crops.each_with_index do |crop, index|
+    #   puts "#{index + 1}. #{crop.name} ($#{crop.price})".light_green
+    # end
 
-    puts "4. (Go Back)".light_green
+    # puts "4. (Go Back)".light_green
 
-    puts "Which of these crops would you like to plant? [1,2,3,4]".light_yellow
-    crop_num = get_valid_input([1,2,3,4], "Not a valid crop choice.")
+    # puts "Which crop would you like to plant?".light_yellow
+    # crop_num = get_valid_input([1,2,3,4], "Not a valid crop choice.")
+    crop_names = self.todays_crops.pluck(:name)
+    # crop_names = crop_names.map{|name| name.light_green}
 
-    if crop_num == 4
+    crop_choice = prompt.select("Which crop would you like to plant?".light_yellow, [crop_names, "(Go Back)"].flatten)
+    # get_valid_input([1,2,3,4], "Not a valid crop choice.")
+
+
+
+    if crop_choice == "(Go Back)"
       self.main_screen
     end
 
-    crop_choice = self.todays_crops[crop_num - 1]
-
-    if self.farmer.money < crop_choice.price
-      puts "You don't have enough money to buy #{crop_choice.name} right now...".red
+    # crop_choice = self.todays_crops[crop_num - 1]
+    #Strip colorize formatting with [10..-1][0..-5]
+    if self.farmer.money < Plant.find_by_name(crop_choice).price
+      puts "You don't have enough money to buy #{crop_choice} right now...".red
       self.plant_crops_screen
     end
 
-    available_plots = (1..5).to_a - self.farmer.reload.farmer_plants.pluck(:plot_number)
+    available_plots = ((1..5).to_a - self.farmer.reload.farmer_plants.pluck(:plot_number)).map{|num| "Plot #{num}"}
 
     if !available_plots.empty?
-      plots_str = available_plots.map {|plot_num| "Plot #{plot_num}"}.join(", ")
-      puts "Which plot do you want to plant that #{crop_choice.name} in?".light_yellow
-      puts "(Pick the number of the plot)".light_yellow
-      puts "Available Plots: ".light_yellow + "(#{plots_str})".light_green
+      # plots_str = available_plots.map {|plot_num| "Plot #{plot_num}"}.join(", ")
+      # puts "Which plot do you want to plant that #{crop_choice} in?".light_yellow
 
-      # plot_num = get_valid_input([1,2,3,4,5], "That's not a plot!")
-      plot_num = get_valid_input(available_plots, "That plot is full or it's not a valid plot choice!")
+      plot_choice = prompt.select("Which plot do you want to plant that #{crop_choice} in?".light_yellow, [available_plots])
+      plot_num = plot_choice[5]
+      # puts "(Pick the number of the plot)".light_yellow
+      # puts "Available Plots: ".light_yellow + "(#{plots_str})".light_green
+      #
+      # plot_num = get_valid_input(available_plots, "That plot is full or it's not a valid plot choice!")
 
-      self.plant_crop(crop_choice, plot_num)
+      self.plant_crop(Plant.find_by_name(crop_choice), plot_num)
     else
-      puts "Sorry! No plots are available. Would you like to plant over an existing plot? (y/n)".light_yellow
+      puts "Sorry! No plots are available. Would you like to plant over an existing plot?".light_yellow
       puts "WARNING! This will uproot the existing plant in that plot!".red.blink
 
-      ans = self.get_valid_input(['y','n'], "That's not (y/n)...")
+      yesno = prompt.yes?("a".hide)
+      # ans = self.get_valid_input(['y','n'], "That's not (y/n)...")
 
-      case ans
-      when 'y'
+      case yesno
+      when true
         puts "Which plot would you like to plant over?".light_yellow
 
         (1..5).to_a.each do |plot_num|
           puts "Plot #{plot_num}: #{self.whats_growing(plot_num)}".green
         end
 
-        plot_num = self.get_valid_input((1..5).to_a, "That's not a plot!")
+        ans = prompt.select("", ('1'..'5').to_a).to_i
+        # plot_num = self.get_valid_input((1..5).to_a, "That's not a plot!")
 
-        fp = FarmerPlant.find_by(farmer: self.farmer, plot_number: plot_num)
+        fp = FarmerPlant.find_by(farmer: self.farmer, plot_number: ans)
         FarmerPlant.destroy(fp.id)
+        self.plant_crop(Plant.find_by_name(crop_choice), ans)
 
-        self.plant_crop(crop_choice, plot_num)
-      when 'n'
+      when false
         self.main_screen
       end
     end
 
-    puts "Planted #{crop_choice.name}! You have $#{self.farmer.money}. Would you like to plant more crops? (y/n)".light_yellow
+    # puts "Planted #{crop_choice}! You have $#{self.farmer.money}. Would you like to plant more crops? (y/n)".light_yellow
 
-    ans = self.get_valid_input(['y','n'], "Not a valid option.")
+    ans = prompt.yes?("Planted #{crop_choice}! You have $#{self.farmer.money}. Would you like to plant more crops?".light_yellow)
 
     case ans
-    when "y"
+    when true
       self.plant_crops_screen
-    when "n"
+    when false
       self.main_screen
     end
   end
@@ -407,26 +426,50 @@ class CLI
 
     puts "A strange man is at your door...".green
     sleep(2)
-    puts  "Do you choose to open the door? (y/n)".light_yellow
-    ans = get_valid_input(['y','n'], "Not (y/n).")
-    until ans == 'y'
-      puts  "Do you choose to open the door? (y)".light_yellow
-      ans = self.input
-    end
+    # puts  "Do you choose to open the door? (y/n)".light_yellow
+    # ans = get_valid_input(['y','n'], "Not (y/n).")
+    # until ans == 'y'
+    #   puts  "Do you choose to open the door? (y)".light_yellow
+    #   ans = self.input
+    # end
+    prompt = TTY::Prompt.new
+    first_ans = prompt.yes?("Do you choose to open the door?".light_yellow)
 
-    puts "You take the ".green + "blue pill".cyan + " - the story ends, you wake up in your bed and ".green
+    if !first_ans
+      sleep(2)
+      3.times do
+        puts "*KNOCK*".red
+        sleep(0.75)
+      end
+
+      second_ans = prompt.yes?("Are you sure you don't want to answer that? It seems important.".light_yellow)
+
+      if !second_ans
+        sleep(2)
+        3.times do
+          puts "*BANG*".white.on_red
+          sleep(0.50)
+        end
+
+        third_ans = prompt.select("You door nearly comes off of its hinges. You should answer your door.".light_yellow, ["Answer your door."])
+      end
+    end
+    Catpix::print_image "lib/morpheus.jpg", limit_x: 0.25
+
+    puts "\"You take the ".green + "blue pill".cyan + " - the story ends, you wake up in your bed and ".green
     puts "believe whatever you want to believe. You take the".green + " red pill".red + " - you stay".green
     puts "in Wonderland, and I show you how ".green + "deep".magenta + " the rabbit hole goes.".green
-    puts "Remember: all I'm offering is ".green + "the truth".white + ". Nothing more.".green
-    puts "blue".cyan + " or " + "red".red
+    puts "Remember: all I'm offering is ".green + "the truth".white + ". Nothing more.\"".green
 
-    ans = get_valid_input(["blue","red"],"blue or red")
+    # ans = get_valid_input(["blue","red"],"blue or red")
+    prompt = TTY::Prompt.new
+    ans = prompt.select(">",["Blue pill".cyan, "Red pill".red])
 
-    if ans == "blue"
+    if ans == "Blue pill".cyan
       puts "You had a strange dream last night, but you can't quite remember...".green
       self.todays_luck = 2.2
       self.main_screen
-    elsif ans == "red"
+    elsif ans == "Red pill".red
       self.down_the_rabbit_hole
     end
   end
@@ -443,13 +486,13 @@ class CLI
     sleep(1)
 
     (0..str.length).to_a.each do |loc|
-      system('clear')
-      puts str[0..loc].red
+      print "\b"*loc
+      print str[0..loc].red
       sleep(0.05)
     end
 
     sleep(1)
-    puts "d".red
+    puts "\nd".red
     sleep(1)
 
     (1.. 25000).to_a.each do |i|
@@ -503,8 +546,10 @@ class CLI
       puts "    #{index + 1}. #{farmer.display_name} - #{farmer.crops_harvested} Crops Harvested".green
     end
 
-    puts "\nType '1' to go back to the Main Screen.".light_yellow
-    ans = get_valid_input([1], "Type '1' to go back.")
+    prompt = TTY::Prompt.new
+    prompt.select("Press Enter to go back to the Main Screen".light_yellow,[""])
+    # puts "\nType '1' to go back to the Main Screen.".light_yellow
+    # ans = get_valid_input([1], "Type '1' to go back.")
     self.main_screen
   end
 
@@ -556,7 +601,7 @@ class CLI
   end
 
   def quit
-    puts "                     ★ ".light_yellow.blink + "Goodbye and thanks for visiting Stardew Valley!".light_yellow + "★".light_yellow.blink
+    puts "                          ★ ".light_yellow.blink + "Goodbye and thanks for visiting Stardew Valley!".light_yellow + "★".light_yellow.blink
     exit
   end
 
