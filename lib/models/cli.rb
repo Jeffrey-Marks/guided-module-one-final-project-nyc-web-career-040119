@@ -16,7 +16,7 @@ class CLI
   ##### LOGIN SCREEN
 
   def welcome
-    # Catpix::print_image "lib/stardew_valley.png", limit_x: 0.5
+    Catpix::print_image "lib/stardew_valley.png", limit_x: 0.5
 
     prompt = TTY::Prompt.new
     ans = prompt.select("", ["Login", "Quit"])
@@ -50,10 +50,11 @@ class CLI
 
     if self.farmer.farmer_plants.reload.empty? && self.farmer.reload.money <= 20
       sleep(3)
-      puts "          Your dream of becoming a farmer has failed. You move back in with your parents."
+      puts "Your dream of becoming a farmer has failed. You move back in with your parents."
       self.farmer.delete
       self.quit
     end
+
 
     puts "Welcome back, #{self.farmer.display_name}!".light_yellow
     self.main_screen
@@ -79,15 +80,16 @@ class CLI
     prompt = TTY::Prompt.new
     puts "Can't find any farmers with that name.".light_yellow
 
-    ans = prompt.yes?("Make a new farmer with that name?".light_yellow)
+    ans = prompt.select("Make a new farmer with that name?".light_yellow,['Yes','No'])
 
     case ans
-    when true
+    when "Yes"
+
       self.farmer = Farmer.create(name: name)
       puts "Welcome to Stardew Valley, #{self.farmer.display_name}!".light_yellow
       ###Change name of farm
       self.main_screen
-    when false
+    when "No"
       self.welcome
     end
   end
@@ -97,6 +99,7 @@ class CLI
   ##### MAIN SCREEN
 
   def main_screen
+    self.divider
     prompt = TTY::Prompt.new
     # puts "Enter the option number you want to perform.".light_yellow
     ans = prompt.select("What would you like to do today?".light_yellow, [
@@ -130,6 +133,7 @@ class CLI
   ###### CHECK CROPS
 
   def check_crops_screen
+    self.divider
     puts "Here are your crops:".light_yellow
 
     (1..5).to_a.each do |plot_num|
@@ -147,6 +151,7 @@ class CLI
     case ans
     when "Harvest Crops"
       if self.farmer.farmer_plants.reload.empty?
+
         puts "No crops ready to harvest.".green
       end
 
@@ -168,6 +173,7 @@ class CLI
       end
       self.check_crops_screen
     when "Go Back to Main Screen"
+
       self.main_screen
     end
   end
@@ -209,6 +215,7 @@ class CLI
   ##### PLANT CROPS
 
   def plant_crops_screen
+    self.divider
     prompt = TTY::Prompt.new
 
     puts "These are the crops that are available today".light_yellow
@@ -263,11 +270,11 @@ class CLI
       puts "Sorry! No plots are available. Would you like to plant over an existing plot?".light_yellow
       puts "WARNING! This will uproot the existing plant in that plot!".red.blink
 
-      yesno = prompt.yes?("a".hide)
+      yesno = prompt.select("a".hide,['Yes','No'])
       # ans = self.get_valid_input(['y','n'], "That's not (y/n)...")
 
       case yesno
-      when true
+      when "Yes"
         puts "Which plot would you like to plant over?".light_yellow
 
         (1..5).to_a.each do |plot_num|
@@ -281,19 +288,19 @@ class CLI
         FarmerPlant.destroy(fp.id)
         self.plant_crop(Plant.find_by_name(crop_choice), ans)
 
-      when false
+      when "No"
         self.main_screen
       end
     end
 
     # puts "Planted #{crop_choice}! You have $#{self.farmer.money}. Would you like to plant more crops? (y/n)".light_yellow
 
-    ans = prompt.yes?("Planted #{crop_choice}! You have $#{self.farmer.money}. Would you like to plant more crops?".light_yellow)
+    ans = prompt.select("Planted #{crop_choice}! You have $#{self.farmer.money}. Would you like to plant more crops?".light_yellow, ["Yes", "No"])
 
     case ans
-    when true
+    when "Yes"
       self.plant_crops_screen
-    when false
+    when "No"
       self.main_screen
     end
   end
@@ -311,6 +318,7 @@ class CLI
 
   def sleep_screen  # Sleep , increment day of all farmer_plants
                     # Kills overgrown crops but only removes self.farmer's overgrown crops from DB
+    # self.divider
     FarmerPlant.update_all("days_since_planted = days_since_planted + 1")
     self.random_event
     FarmerPlant.all.each do |fp|
@@ -339,11 +347,11 @@ class CLI
 
 
   def random_event
-    num = rand(1..200)
-    lightning = (2..7).to_a
-    aliens = [42]
-    mother_nature = [10,11]
-    morpheus = [1,100]
+    num = rand(1..100)
+    lightning = (1..20).to_a
+    aliens = [42,43,44]
+    mother_nature = (50..55).to_a
+    morpheus = [99,100]
 
     if lightning.include?(num)
       self.lightning
@@ -361,6 +369,7 @@ class CLI
   def lightning
     num = rand(1..5)
     plot_hit = self.farmer.farmer_plants.find_by(plot_number: num)
+
     if plot_hit
       puts  "Lightning struck last night! It vaporized your #{plot_hit.plant.name} in Plot #{num} :C ".red.blink
       FarmerPlant.delete(plot_hit.id)
@@ -433,39 +442,39 @@ class CLI
     #   ans = self.input
     # end
     prompt = TTY::Prompt.new
-    first_ans = prompt.yes?("Do you choose to open the door?".light_yellow)
+    first_ans = prompt.select("Do you choose to open the door?".light_yellow, ["Yes", "No"])
 
-    if !first_ans
+    if first_ans == "No"
       sleep(2)
       3.times do
         puts "*KNOCK*".red
         sleep(0.75)
       end
 
-      second_ans = prompt.yes?("Are you sure you don't want to answer that? It seems important.".light_yellow)
+      second_ans = prompt.select("Are you sure you don't want to answer that? It seems important.".light_yellow, ['Yes','No'])
 
-      if !second_ans
+      if second_ans == "No"
         sleep(2)
         3.times do
           puts "*BANG*".white.on_red
           sleep(0.50)
         end
 
-        third_ans = prompt.select("You door nearly comes off of its hinges. You should answer your door.".light_yellow, ["Answer your door."])
+        third_ans = prompt.select("Your door nearly comes off of its hinges. You should that probably.".light_yellow, ["Answer your door."])
       end
     end
     Catpix::print_image "lib/morpheus.jpg", limit_x: 0.25
 
-    puts "\"You take the ".green + "blue pill".cyan + " - the story ends, you wake up in your bed and ".green
+    puts "\"You take the ".green + "blue pill".light_cyan + " - the story ends, you wake up in your bed and ".green
     puts "believe whatever you want to believe. You take the".green + " red pill".red + " - you stay".green
-    puts "in Wonderland, and I show you how ".green + "deep".magenta + " the rabbit hole goes.".green
-    puts "Remember: all I'm offering is ".green + "the truth".white + ". Nothing more.\"".green
+    puts "in Wonderland, and I show you how ".green + "deep".white.on_black + " the rabbit hole goes.".green
+    puts "Remember: all I'm offering is ".green + "the truth".light_yellow + ". Nothing more.\"".green
 
     # ans = get_valid_input(["blue","red"],"blue or red")
     prompt = TTY::Prompt.new
-    ans = prompt.select(">",["Blue pill".cyan, "Red pill".red])
+    ans = prompt.select(">",["Blue pill".light_cyan, "Red pill".red])
 
-    if ans == "Blue pill".cyan
+    if ans == "Blue pill".light_cyan
       puts "You had a strange dream last night, but you can't quite remember...".green
       self.todays_luck = 2.2
       self.main_screen
@@ -534,7 +543,7 @@ class CLI
   ### STATS SCREEN
 
   def stats_screen
-    puts "Total Money Earned: $#{self.farmer.total_money_earned}   |   Total Crops Harvested: #{self.farmer.crops_harvested}".green
+    puts "\nYour Total Money Earned: $#{self.farmer.total_money_earned}\nYour Total Crops Harvested: #{self.farmer.crops_harvested}".green
 
     puts "\nAll-Time Richest Farmers:".green
     Farmer.richest_farmers.each_with_index do |farmer, index|
@@ -545,6 +554,8 @@ class CLI
     Farmer.greenest_farmers.each_with_index do |farmer, index|
       puts "    #{index + 1}. #{farmer.display_name} - #{farmer.crops_harvested} Crops Harvested".green
     end
+
+    puts "\n"
 
     prompt = TTY::Prompt.new
     prompt.select("Press Enter to go back to the Main Screen".light_yellow,[""])
@@ -601,8 +612,12 @@ class CLI
   end
 
   def quit
-    puts "                          ★ ".light_yellow.blink + "Goodbye and thanks for visiting Stardew Valley!".light_yellow + "★".light_yellow.blink
+    puts "★ ".light_yellow.blink + "Goodbye and thanks for visiting Stardew Valley!".light_yellow + "★".light_yellow.blink
     exit
+  end
+
+  def divider
+    puts "\n========================================================================\n".light_white
   end
 
 end

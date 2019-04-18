@@ -1,17 +1,30 @@
 ## Stardew Valley Command Line Game
 
-##### Note for Installation
+##### How to Install and Run SDVCLI
 
-The gem "catpix" requires the program ImageMagick to be installed.
+1. The gem "catpix" requires the program ImageMagick to be installed.
 
   * On MacOS: `brew install imagemagick`
   * On Linux: `sudo apt-get install libmagickwand-dev`
 
-Afterwards run `bundle install` to install necessary gems!
+2. Afterwards run `bundle install` to install necessary gems.
 
-##### How to Run
+3. Run `rake db:migrate` to create the database files.
 
-In terminal from parent directory: `ruby bin/run.rb`
+4. Run `rake db:seed` to fill the databases with the necessary information.
+
+5. From parent directory, run `ruby bin/run.rb`
+
+Happy farming!
+
+
+##### Hints
+
+Some crops take a while to grow. It might take a few days before you start noticing growth!
+
+
+
+
 
 # Tasks
 
