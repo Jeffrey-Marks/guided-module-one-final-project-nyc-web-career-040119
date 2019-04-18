@@ -14,6 +14,7 @@ class CLI
     # Warnings: red.blink
 
 
+
   ##### LOGIN SCREEN
 
   def welcome
@@ -201,6 +202,7 @@ class CLI
       end
     end
   end
+
 
 
 
