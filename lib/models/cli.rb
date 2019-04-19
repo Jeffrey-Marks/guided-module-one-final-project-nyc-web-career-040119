@@ -425,7 +425,7 @@ class CLI
     farmer.farmer_plants.each do |fp|
       fp.update(days_since_planted: fp.plant.days_to_grow )
     end
-    puts "🍀🌷🌼 Mother Nature paid you a visit last night 🌼🌷🍀".green.blink
+      puts "🍀🌷🌼 Mother Nature paid you a visit last night 🌼🌷🍀".green.blink
   end
 
   #ORIGINAL
