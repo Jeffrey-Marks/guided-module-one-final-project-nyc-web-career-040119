@@ -64,6 +64,7 @@ class CLI
   def abduction_screen
     sleep(3)
     self.abducted_animation(self.farmer.display_name)
+    sleep(2)
 
     puts "\nMissing people:".red
     Farmer.abducted.each_with_index do |farmer|
@@ -371,7 +372,7 @@ class CLI
     plot_hit = self.farmer.farmer_plants.find_by(plot_number: num)
 
     if plot_hit
-      puts  "Lightning struck last night! It vaporized your #{plot_hit.plant.name} in Plot #{num} :C ".red.blink
+      puts  "Lightning struck last night! It vaporized your #{plot_hit.plant.name} in Plot #{num} :(".red.blink
       FarmerPlant.delete(plot_hit.id)
     else
       puts "Lightning struck last night!".red + " Luckily nothing was planted in Plot #{num}".green
@@ -391,32 +392,71 @@ class CLI
 
 
   def abducted_animation(name)
+    Catpix::print_image "lib/green-alien-mask.jpg", limit_x: 0.2
     str = "\"Hello I'm from another planet. Please come with me.\"" #.red
     alien_str = (1..53).to_a.map{(32..126).to_a.sample.chr}.join
     abducted = "\n.........#{name} disappeared in the middle of the night." #.red
 
     (0..str.length).to_a.each do |loc|
-      system('clear')
-      puts alien_str[0..loc].light_magenta
+      print "\b"*loc
+      print alien_str[0..loc].light_green
       sleep(0.05)
     end
 
     sleep(2)
 
     (0..str.length-1).to_a.each do |loc|
-      system('clear')
-      puts str[0..loc].red + alien_str[loc+1..str.length].light_magenta
+      print "\b" * (alien_str.length + loc)
+      print str[0..loc].green + alien_str[loc+1..str.length].light_green
       sleep(0.05)
     end
 
     sleep(2)
 
-    (str.length..str.length+abducted.length).to_a.each do |loc|
+    (0..abducted.length).to_a.each do |loc|
       system('clear')
-      puts (str + abducted)[0..loc].red
+      puts (abducted)[0..loc].red
       sleep(0.05)
     end
   end
+
+
+  def mother_nature
+    farmer.farmer_plants.each do |fp|
+      fp.update(days_since_planted: fp.plant.days_to_grow )
+    end
+    puts "🍀🌷🌼 Mother Nature paid you a visit last night 🌼🌷🍀".green.blink
+  end
+
+  #ORIGINAL
+  # def abducted_animation(name)
+  #   Catpix::print_image "lib/green-alien-mask.jpg", limit_x: 0.2
+  #   str = "\"Hello I'm from another planet. Please come with me.\"" #.red
+  #   alien_str = (1..53).to_a.map{(32..126).to_a.sample.chr}.join
+  #   abducted = "\n.........#{name} disappeared in the middle of the night." #.red
+  #
+  #   (0..str.length).to_a.each do |loc|
+  #     system('clear')
+  #     puts alien_str[0..loc].light_magenta
+  #     sleep(0.05)
+  #   end
+  #
+  #   sleep(2)
+  #
+  #   (0..str.length-1).to_a.each do |loc|
+  #     system('clear')
+  #     puts str[0..loc].red + alien_str[loc+1..str.length].light_magenta
+  #     sleep(0.05)
+  #   end
+  #
+  #   sleep(2)
+  #
+  #   (str.length..str.length+abducted.length).to_a.each do |loc|
+  #     system('clear')
+  #     puts (str + abducted)[0..loc].red
+  #     sleep(0.05)
+  #   end
+  # end
 
 
   def mother_nature
